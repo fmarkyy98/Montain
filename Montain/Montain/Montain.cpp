@@ -1,20 +1,112 @@
-// Montain.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
+#include <strstream>
+
+using namespace std;
+
+struct Section
+{
+	int heigth = 0;
+	bool peak = false;
+};
+
+const int MAX_N = 10000;
+const int MAX_PEAKS = 5000;
+int neededPeakPositions[MAX_PEAKS];
+Section montain[MAX_N];
+int n = 0;
+int peakCount = 0;
+
+string stringJoin(int* array, unsigned int arrayLength, string separator = " ")
+{
+	strstream result;
+	result << "";
+	if (arrayLength != 0)
+	{
+		result << array[0];
+		for (int i = 1; i < arrayLength; ++i)
+		{
+			result << separator << array[i];
+		}
+	}
+	result << '\0';
+	string resultStr = result.str();
+	return resultStr;
+}
+
+int setToNextPeakIndex(int* pointer)
+{
+
+	int i = *pointer + 1;
+	while (i < n && !montain[i].peak)
+	{
+		++i;
+	}
+	if (i == n)
+	{
+		*pointer = -1;
+	}
+	else
+	{
+		*pointer = i;
+	}
+	return *pointer;
+}
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	int neededNeighbours = 0;
+	cin >> n >> neededNeighbours;
+	for (int i = 0; i < n; ++i)
+	{
+		cin >> montain[i].heigth;
+	}
+	for (int i = 1; i < n - 1; ++i)
+	{
+		if (montain[i].heigth > montain[i - 1].heigth&& montain[i].heigth > montain[i + 1].heigth)
+		{
+			montain[i].peak = true;
+			++peakCount;
+		}
+	}
+
+	if (neededNeighbours > peakCount)
+	{
+		cout << -1;
+	}
+	else
+	{
+		int indexOfFirstPeak = 0;
+		int indexOfLastPeak = 0;
+
+		setToNextPeakIndex(&indexOfFirstPeak);
+		for (int i = 0; i < neededNeighbours; ++i)
+		{
+			setToNextPeakIndex(&indexOfLastPeak);
+		}
+
+		int min = indexOfLastPeak - indexOfFirstPeak;
+		int indexOfMinFirstPeak = indexOfFirstPeak;
+
+		while (indexOfLastPeak != -1)
+		{
+			setToNextPeakIndex(&indexOfFirstPeak);
+			setToNextPeakIndex(&indexOfLastPeak);
+			int current = indexOfLastPeak - indexOfFirstPeak;
+			if (indexOfLastPeak != -1 && min > current)
+			{
+				min = current;
+				indexOfMinFirstPeak = indexOfFirstPeak;
+			}
+		}
+
+		neededPeakPositions[0] = indexOfMinFirstPeak + 1;
+		for (int i = 1; i < neededNeighbours; i++)
+		{
+			neededPeakPositions[i] = setToNextPeakIndex(&indexOfMinFirstPeak) + 1;
+		}
+		cout << min << endl;
+		cout << stringJoin(neededPeakPositions, neededNeighbours, " ");
+	}
+
+	return 0;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
